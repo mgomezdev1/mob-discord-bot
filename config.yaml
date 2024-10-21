@@ -1,0 +1,9 @@
+prefix: "~"
+cogs:
+  - test
+  - notify
+listening_guilds:
+  - "1189747079732527214"
+staff_roles:
+  - "1189747789136146542"
+  - "1189747917469270087"
