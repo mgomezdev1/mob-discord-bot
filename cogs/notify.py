@@ -17,7 +17,8 @@ class NotifyCog(commands.Cog):
         self.status = defaultdict(lambda: CODE_UNKNOWN) # technically the same as defaultdict(int). But that's only because UNKNOWN = 0, arbitrary.
 
     def cog_unload(self):
-        self.check_mutestatus.cancel()
+        pass
+        # self.check_mutestatus.cancel()
 
     async def broadcast_mute_status_update(self, user: discord.User, channel: discord.VoiceChannel, muted: bool):
         # Rule processing
@@ -47,37 +48,21 @@ class NotifyCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        pass
         #print("Starting mutestatus check")
-        self.check_mutestatus.start()
+        #self.check_mutestatus.start()
 
-    @tasks.loop(seconds=1.0)
-    async def check_mutestatus(self):
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, user: discord.User, before: discord.VoiceState, after: discord.VoiceState):
+        # print("Voice state update detected!")
         observed_users = set(await self.repo.get_mutenotify_users())
-        #print("Running mute status update:")
-        #print(f"\tObserved Users: {observed_users}")
-        #print(f"\tStatus: {dict(self.status)}")
-        to_update: list[tuple[discord.Member, discord.VoiceChannel, bool]] = []
-        for guild_id in self.config.listening_guilds:
-            guild = self.bot.get_guild(guild_id)
-            channels = guild.channels
-            for channel in channels:
-                if channel.type != discord.ChannelType.voice:
-                    continue
-                for member in channel.members:
-                    if member.id not in observed_users:
-                        continue
-                    muted = member.voice.mute or member.voice.self_mute or member.voice.suppress
-                    curr_status = CODE_MUTED if muted else CODE_UNMUTED
-                    if self.status[member.id] != curr_status:
-                        to_update.append((member, channel, muted))
-                        self.status[member.id] = curr_status
-        
-        if len(to_update) > 0:
-            # execute all broadcasts asynchronously, not sequentially
-            # print("Updating cases:")
-            # for u,c,m in to_update:
-            #     print(f"{u.display_name} mute status in {c.name} is not {m}")
-            await asyncio.gather(*[self.broadcast_mute_status_update(*args) for args in to_update])
+        if user.id not in observed_users:
+            return
+        muted = after.mute or after.self_mute or after.suppress
+        curr_status = CODE_MUTED if muted else CODE_UNMUTED
+        if self.status[user.id] != curr_status:
+            await self.broadcast_mute_status_update(user, after.channel, muted)
+            self.status[user.id] = curr_status
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(NotifyCog(bot))
