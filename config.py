@@ -4,6 +4,8 @@ import yaml
 
 import discord
 
+from lib.notify.config import NotifyConfig
+
 logger = logging.getLogger(__name__)
 
 def write_env_value(key: str, value: str):
@@ -51,3 +53,4 @@ class Config:
         self.cogs: list[str] = self.config_dict.get("cogs", [])
         self.listening_guilds: list[int] = [int(x) for x in self.config_dict.get("listening_guilds", [])]
         self.staff_roles: list[int] = [int(x) for x in self.config_dict.get("staff_roles", [])]
+        self.notify = NotifyConfig(self.config_dict.get("notify", {}))

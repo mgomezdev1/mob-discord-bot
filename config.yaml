@@ -7,3 +7,21 @@ listening_guilds:
 staff_roles:
   - "1189747789136146542"
   - "1189747917469270087"
+notify:
+  mutenotify_rules:
+    - name: "Mob Image"
+      id: "989237277697925161"
+      format: image
+      file: out/mob_mute.png
+      image:
+        muted: media/muted.png
+        unmuted: media/unmuted.png
+        unknown: media/blank.png
+    - name: "Mob Text"
+      id: "989237277697925161"
+      format: html
+      file: out/mob_status.txt
+      template:
+        muted: "<p>You are <b>muted</b>!!!</p>"
+        unmuted: "<p>You're good, pookums</p>"
+        unknown: "<p><i>Fetching status...</i></p>"

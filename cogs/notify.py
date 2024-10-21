@@ -6,10 +6,7 @@ from discord.ext import commands, tasks
 
 from config import get_config
 from data.notify_repo import NotifyRepo, YamlNotifyRepo
-
-CODE_UNKNOWN = 0
-CODE_MUTED = 1
-CODE_UNMUTED = 2
+from lib.notify.config import CODE_MUTED, CODE_UNKNOWN, CODE_UNMUTED
 
 class NotifyCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -23,9 +20,12 @@ class NotifyCog(commands.Cog):
         self.check_mutestatus.cancel()
 
     async def broadcast_mute_status_update(self, user: discord.User, channel: discord.VoiceChannel, muted: bool):
-        # TEMPORARY, HARD-CODED FOR TESTING
-        dump_channel = channel.guild.get_channel(1297741460791361536)
-        await dump_channel.send(f"User {user.display_name} has set their mute status to: {'MUTED' if muted else 'UNMUTED'}")
+        # Rule processing
+        for rule in self.config.notify.mutenotify_rules:
+            # print(f"Processing rule {rule.name} with user {rule.id}. Event user = {user.id}")
+            if rule.id != user.id:
+                continue
+            rule.set_status(CODE_MUTED if muted else CODE_UNMUTED)
 
     @commands.command()
     async def mutenotify(self, ctx: commands.Context, user: discord.User, value: bool):
